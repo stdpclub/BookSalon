@@ -25,27 +25,27 @@ func initView(r *gin.Engine) {
 	// 新建一个user
 	r.POST("/user", createUser)
 	// 删除一个user
-	r.DELETE("/user/:userid", func(c *gin.Context) {})
+	r.DELETE("/user/:userid", deleteUser)
 
 	// 获取user用户的所有team
-	r.GET("/user/:userid/teams", func(c *gin.Context) {})
+	r.GET("/user/:userid/teams", getAllUserTeam)
 	// 新建一个隶属于user的team
-	r.POST("/user/:userid/team", func(c *gin.Context) {})
+	r.POST("/user/:userid/team", createUserTeam)
 	// 获取user用户的某个team的信息
-	r.GET("/user/:userid/team/:teamid", func(c *gin.Context) {})
+	r.GET("/user/:userid/team/:teamid", getUserTeam)
 	// 更新user下的team的信息
-	r.PUT("/user/:userid/team/:teamid", func(c *gin.Context) {})
+	r.PUT("/user/:userid/team/:teamid", updateUserTeam)
 	// 删除user下的某个team
-	r.DELETE("/user/:userid/team/:teamid", func(c *gin.Context) {})
+	r.DELETE("/user/:userid/team/:teamid", deleteUserTeam)
 
 	// 获取user参加的team的leader
-	r.GET("/user/:userid/team/:teamid/leader", func(c *gin.Context) {})
+	r.GET("/user/:userid/team/:teamid/leader", getTeamLeader)
 	// 获取user参加的team的所有组员
-	r.GET("/user/:userid/team/:teamid/members", func(c *gin.Context) {})
+	r.GET("/user/:userid/team/:teamid/members", getAllMember)
 	// 增加user下的某个team的组员
-	r.POST("/user/:userid/team/:teamid/member", func(c *gin.Context) {})
+	r.POST("/user/:userid/team/:teamid/member", createTeamMember)
 	// 删除user下的某个team的某个组员
-	r.DELETE("/user/:userid/team/:teamid/member/:id", func(c *gin.Context) {})
+	r.DELETE("/user/:userid/team/:teamid/member/:id", deleteTeamMember)
 
 }
 

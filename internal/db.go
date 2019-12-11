@@ -19,7 +19,8 @@ type UserAccount struct {
 // User is student table in the mysql
 type User struct {
 	gorm.Model
-	Name string `form:"name" json:"name" binding:"required" gorm:"type:varchar(100);not null"`
+	Name  string `form:"name" json:"name" binding:"required" gorm:"type:varchar(100);not null"`
+	Teams []Team `gorm:"many2many:user_teams"`
 }
 
 // Team is a student group
@@ -27,6 +28,7 @@ type Team struct {
 	gorm.Model
 	Topic    string `form:"topic" json:"topic" binding:"required" gorm:"type:varchar(100);not null"`
 	LeaderID string `form:"leaderid" json:"leaderid" binding:"required" gorm:"type:varchar(100);not null"`
+	Users    []User `gorm:"many2many:user_teams"`
 }
 
 func initDB() {

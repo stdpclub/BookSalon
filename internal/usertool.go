@@ -15,7 +15,13 @@ func dbSearchUser(user UserAccount) bool {
 	return true
 }
 
+func checkUserState(c *gin.Context) {
+
+}
+
 func getAllUser(c *gin.Context) {
+	checkUserState(c)
+
 	var users []User
 	db.Find(&users)
 
@@ -25,6 +31,8 @@ func getAllUser(c *gin.Context) {
 }
 
 func getUserInfo(c *gin.Context) {
+	checkUserState(c)
+
 	var user User
 	userid := c.Param("userid")
 	if err := db.Where("id = ?", userid).First(&user).Error; err != nil {
@@ -40,6 +48,8 @@ func getUserInfo(c *gin.Context) {
 }
 
 func createUser(c *gin.Context) {
+	checkUserState(c)
+
 	var user User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -48,14 +58,49 @@ func createUser(c *gin.Context) {
 		return
 	}
 
-	if err := db.Create(&user).Error; err != nil {
+	tx := db.Begin()
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "server create user error",
 		})
+		tx.Rollback()
 		return
 	}
+
+	tx.Commit()
 
 	c.JSON(http.StatusOK, gin.H{
 		"user": user,
 	})
+}
+
+func deleteUser(c *gin.Context) {
+	checkUserState(c)
+
+	var user User
+	userid := c.Param("userid")
+	tx := db.Begin()
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if db.Where("id = ?", userid).Unscoped().Delete(user).RecordNotFound() {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "user not found",
+		})
+		tx.Rollback()
+		return
+	}
+
+	tx.Commit()
+
+	c.JSON(http.StatusOK, gin.H{})
 }

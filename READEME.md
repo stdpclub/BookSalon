@@ -2,9 +2,9 @@
 ## what it is
 It's a individual practice project.
 
-And it's still being designed and built
+**And it's still being designed and built**
 
-The project is build with `golang` `nginx` `docker`
+The project is built with `golang` `nginx` `docker`
 
 ## Installation
 
@@ -18,10 +18,7 @@ run `go build .`
 
 run `internal.exe`
 
-```shell
-sudo cgroupfs-mount
-sudo service docker start
-```
+...
 
 ## what's more
 
