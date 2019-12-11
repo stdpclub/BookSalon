@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>booksalon index</title>
+</head>
+<body>
+    <h1>hi this is index page</h1>
+    <h1>states: <span>{{.username}}</span></h1>
+
+    <h3>login:</h3>
+    <div id="login-box">
+        <form action="/login" method="post">
+            <div>accout: <input type="text" name="account" id="account"></div>
+            <div>password: <input type="password" name="password" id="password"></div>
+            <div><input type="submit" value="提交"></div>
+        </form>
+    </div>
+
+    <h3>sign up:</h3>
+    <div id="signup-box">
+        <form action="/signup" method="post">
+            <div>accout: <input type="text" name="account" id="account"></div>
+            <div>name: <input type="text" name="name" id="name"></div>
+            <div>password: <input type="password" name="password" id="password"></div>
+            <div><input type="submit" value="提交"></div>
+        </form>
+    </div>
+
+</body>
+</html>
