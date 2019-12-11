@@ -12,18 +12,21 @@ var db *gorm.DB
 // UserAccount is database table which store user account infomation
 type UserAccount struct {
 	gorm.Model
-	ID       string
 	Account  string `form:"account" json:"account" binding:"required" gorm:"type:varchar(100);unique_index"`
 	Password string `form:"password" json:"password" binding:"required" gorm:"type:varchar(100);not null"`
 }
 
-func dbSearchUser(user UserAccount) bool {
-	var usert UserAccount
-	if db.Where("account = ? AND password = ?", user.Account, user.Password).First(&usert).RecordNotFound() {
-		return false
-	}
+// User is student table in the mysql
+type User struct {
+	gorm.Model
+	Name string `form:"name" json:"name" binding:"required" gorm:"type:varchar(100);not null"`
+}
 
-	return true
+// Team is a student group
+type Team struct {
+	gorm.Model
+	Topic    string `form:"topic" json:"topic" binding:"required" gorm:"type:varchar(100);not null"`
+	LeaderID string `form:"leaderid" json:"leaderid" binding:"required" gorm:"type:varchar(100);not null"`
 }
 
 func initDB() {
@@ -37,5 +40,7 @@ func initDB() {
 		println(err)
 		os.Exit(0)
 	}
+	db.AutoMigrate(&User{})
+	db.AutoMigrate(&Team{})
 	db.Create(&user)
 }
