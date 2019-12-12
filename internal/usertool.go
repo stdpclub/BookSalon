@@ -6,21 +6,36 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func dbSearchUser(user UserAccount) bool {
-	var usert UserAccount
-	if db.Where("account = ? AND password = ?", user.Account, user.Password).First(&usert).RecordNotFound() {
-		return false
-	}
-
-	return true
+func getUserObj(c *gin.Context, user *User) error {
+	userid := c.Param("userid")
+	return getUserObjByID(c, userid, user)
 }
 
-func checkUserState(c *gin.Context) {
+func getUserObjByID(c *gin.Context, userid string, user *User) error {
+	if db.First(user, "id = ?", userid).RecordNotFound() {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "user not found",
+		})
+		return db.Error
+	}
+	return nil
+}
 
+func checkUserState(c *gin.Context) (username string, err error) {
+	if username, err = c.Cookie("user"); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "you haven't login",
+		})
+		return "", err
+	}
+
+	return username, nil
 }
 
 func getAllUser(c *gin.Context) {
-	checkUserState(c)
+	if _, err := checkUserState(c); err != nil {
+		return
+	}
 
 	var users []User
 	db.Find(&users)
@@ -31,7 +46,9 @@ func getAllUser(c *gin.Context) {
 }
 
 func getUserInfo(c *gin.Context) {
-	checkUserState(c)
+	if _, err := checkUserState(c); err != nil {
+		return
+	}
 
 	var user User
 	userid := c.Param("userid")
@@ -48,7 +65,9 @@ func getUserInfo(c *gin.Context) {
 }
 
 func createUser(c *gin.Context) {
-	checkUserState(c)
+	if _, err := checkUserState(c); err != nil {
+		return
+	}
 
 	var user User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -81,7 +100,9 @@ func createUser(c *gin.Context) {
 }
 
 func deleteUser(c *gin.Context) {
-	checkUserState(c)
+	if _, err := checkUserState(c); err != nil {
+		return
+	}
 
 	var user User
 	userid := c.Param("userid")

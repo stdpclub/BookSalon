@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -51,18 +50,26 @@ func initView(r *gin.Engine) {
 
 func handleLogin(c *gin.Context) {
 	var loginInfo UserAccount
-	log.Println(c.PostForm("account"), c.PostForm("password"))
-	if err := c.ShouldBindJSON(&loginInfo); err != nil { // JSON
-		if err = c.ShouldBind(&loginInfo); err != nil { // FORM
-			c.JSON(http.StatusBadRequest, gin.H{"loginState": "incomplete"})
-			return
-		}
-	}
 
-	if !dbSearchUser(loginInfo) { // return manage page
-		c.JSON(http.StatusUnauthorized, gin.H{"loginState": "unauthorized"})
+	if err := c.ShouldBindJSON(&loginInfo); err != nil { // JSON
+		c.JSON(http.StatusBadRequest, gin.H{"error": "format incomplete"})
 		return
 	}
 
+	if db.First(&loginInfo).RecordNotFound() {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	// TODO: account relationship with user need to modify
+	var user User
+	if db.First(&user, "name = ?", loginInfo.Account).RecordNotFound() {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "account search error"})
+		return
+	}
+
+	// TODO: don't use cookies, use token to control the login status
+	c.SetCookie("user", string(user.ID), 3600, "/", "localhost", false, false)
 	c.JSON(http.StatusOK, gin.H{"loginState": "login success"})
+
 }

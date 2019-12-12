@@ -14,6 +14,7 @@ type UserAccount struct {
 	gorm.Model
 	Account  string `form:"account" json:"account" binding:"required" gorm:"type:varchar(100);unique_index"`
 	Password string `form:"password" json:"password" binding:"required" gorm:"type:varchar(100);not null"`
+	// UserID   uint
 }
 
 // User is student table in the mysql
@@ -21,6 +22,7 @@ type User struct {
 	gorm.Model
 	Name  string `form:"name" json:"name" binding:"required" gorm:"type:varchar(100);not null"`
 	Teams []Team `gorm:"many2many:user_teams"`
+	// UserAccount UserAccount // this will get user password!!! which must can't be shown
 }
 
 // Team is a student group
