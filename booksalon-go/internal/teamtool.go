@@ -20,14 +20,15 @@ func getUserTeamObj(c *gin.Context, user *User, team *Team) error {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "team not found",
 		})
-		return db.Error
 	}
 
 	return nil
 }
 
 func getAllUserTeam(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil { return}
+	if _, err := checkUserState(c); err != nil {
+		return
+	}
 
 	var teams []Team
 	user := User{}
@@ -41,7 +42,9 @@ func getAllUserTeam(c *gin.Context) {
 }
 
 func createUserTeam(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil { return}
+	if _, err := checkUserState(c); err != nil {
+		return
+	}
 
 	userid := c.Param("userid")
 
@@ -92,7 +95,9 @@ func createUserTeam(c *gin.Context) {
 }
 
 func getUserTeam(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil { return}
+	if _, err := checkUserState(c); err != nil {
+		return
+	}
 	var user User
 	var team Team
 	// var teams []Team
@@ -107,7 +112,9 @@ func getUserTeam(c *gin.Context) {
 }
 
 func updateUserTeam(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil { return}
+	if _, err := checkUserState(c); err != nil {
+		return
+	}
 	var user User
 	var team Team
 	// var teams []Team
@@ -147,7 +154,9 @@ func updateUserTeam(c *gin.Context) {
 }
 
 func deleteUserTeam(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil { return}
+	if _, err := checkUserState(c); err != nil {
+		return
+	}
 
 	var user User
 	var team Team
