@@ -3,60 +3,48 @@ package main
 import (
 	"crypto/md5"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func initView(r *gin.Engine) {
-	// r.LoadHTMLGlob("../web/templates/*")
-
-	// r.GET("/", func(c *gin.Context) {
-	// 	c.HTML(http.StatusOK, "index.html", gin.H{
-	// 		"username": "none",
-	// 	})
-	// })
-
-	r.POST("/login", handleLogin)
+func initView() *gin.Engine {
+	r := gin.Default()
+	r.POST("/login", handleLogin) // 登录
 
 	userGroup := r.Group("/user", authRequired())
 	{
-		// 获取所有用户
-		userGroup.GET("/", getAllUser)
-		// 查询某个用户的信息
-		userGroup.GET("/:userid", getUserInfo)
-		// 新建一个user
-		userGroup.POST("/", createUser)
-		// 删除一个user
-		userGroup.DELETE("/:userid", deleteUser)
+		userGroup.GET("/", getAllUser)           // 获取所有用户
+		userGroup.GET("/:userid", getUserInfo)   // 查询某个用户的信息
+		userGroup.POST("/", createUser)          // 新建一个user
+		userGroup.DELETE("/:userid", deleteUser) // 删除一个user
 
-		// 获取user用户的所有team
-		userGroup.GET("/:userid/teams", getAllUserTeam)
-		// 新建一个隶属于user的team
-		userGroup.POST("/:userid/team", createUserTeam)
-		// 获取user用户的某个team的信息
-		userGroup.GET("/:userid/team/:teamid", getUserTeam)
-		// 更新user下的team的信息
-		userGroup.PUT("/:userid/team/:teamid", updateUserTeam)
-		// 删除user下的某个team
-		userGroup.DELETE("/:userid/team/:teamid", deleteUserTeam)
+		userObj := userGroup.Group("/:userid", authExact())
+		{
+			userObj.GET("/teams", getAllUserTeam)              // 获取user用户的所有team
+			userObj.POST("/team", createUserTeam)              // 新建一个隶属于user的team
+			userObj.GET("/team/:teamid", getUserTeam)          // 获取user用户的某个team的信息
+			userObj.GET("/team/:teamid/leader", getTeamLeader) // 获取user参加的team的leader
+			userObj.GET("/team/:teamid/members", getAllMember) // 获取user参加的team的所有组员
 
-		// 获取user参加的team的leader
-		userGroup.GET("/:userid/team/:teamid/leader", getTeamLeader)
-		// 获取user参加的team的所有组员
-		userGroup.GET("/:userid/team/:teamid/members", getAllMember)
-		// 增加user下的某个team的组员
-		userGroup.POST("/:userid/team/:teamid/member", createTeamMember)
-		// 删除user下的某个team的某个组员
-		userGroup.DELETE("/:userid/team/:teamid/member/:id", deleteTeamMember)
+			teamObj := userObj.Group("/team/:teamid", authTeamExact())
+			{
+				teamObj.PUT("/", updateUserTeam)                // 更新user下的team的信息
+				teamObj.DELETE("/", deleteUserTeam)             // 删除user下的某个team
+				teamObj.POST("/member", createTeamMember)       // 增加user下的某个team的组员
+				teamObj.DELETE("/member/:id", deleteTeamMember) // 删除user下的某个team的某个组员
+			}
+		}
 	}
 
+	return r
 }
 
 func authRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if usersession, err := c.Cookie("user"); err == nil { // 获取成功
 			if val, ok := userSessions[usersession]; ok == true { // 并且存在 // TODO:添加为redis
-				c.Set("userName", val)
+				c.Set("userid", val)
 				c.Next()
 				return
 			}
@@ -64,6 +52,35 @@ func authRequired() gin.HandlerFunc {
 
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "you haven't login",
+		})
+		c.Abort()
+	}
+}
+
+func authExact() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userid, _ := strconv.Atoi(c.Param("userid"))
+		if valid, ok := c.Get("userid"); ok && valid == userid {
+			c.Next()
+			return
+		}
+
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "You have no access",
+		})
+		c.Abort()
+	}
+}
+
+func authTeamExact() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if getUserTeamObj(c, &User{}, &Team{}) == nil { // TODO: 太低效了，重复查了两次
+			c.Next()
+			return
+		}
+
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "You have no right to modify",
 		})
 		c.Abort()
 	}
@@ -94,9 +111,8 @@ func handleLogin(c *gin.Context) {
 	md5Ctx := md5.New()
 	md5Ctx.Write([]byte(user.Name))
 	sessionID := md5Ctx.Sum(nil)
-	userSessions[string(sessionID)] = user.Name
+	userSessions[string(sessionID)] = int(user.ID)
 
 	c.SetCookie("user", string(sessionID), 3600, "/", "localhost", false, false)
 	c.JSON(http.StatusOK, gin.H{"loginState": "login success"})
-
 }

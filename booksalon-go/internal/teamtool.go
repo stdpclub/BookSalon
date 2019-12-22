@@ -20,6 +20,7 @@ func getUserTeamObj(c *gin.Context, user *User, team *Team) error {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "team not found",
 		})
+		return db.Error
 	}
 
 	return nil
