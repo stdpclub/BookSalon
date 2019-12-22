@@ -1,4 +1,4 @@
-# Book salon V0.1.0
+# Book salon V0.2.0
 
 ## **It's still being designed and built**
 
@@ -10,14 +10,12 @@ The project is built with `golang` `nginx` `docker`
 ## Installation
 
 First, you need the environment of `golang`, `gin`, `nginx` and `docker`.
+> actually after version1.0。0 you just need a docker
 
 Clone the project.
 
-cd `internal`
-
-run `go build .`
-
-run `internal.exe`
+run `runbooksalon.bat` in windows
+or run `./runbooksalon.sh` in unix
 
 ...
 

@@ -10,6 +10,8 @@ import (
 
 const version string = "v0.1.0"
 
+var userSessions = make(map[string]string, 10)
+
 func main() {
 	app := &cli.App{
 		Name:  "booksalon",

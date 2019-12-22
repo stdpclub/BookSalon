@@ -21,22 +21,7 @@ func getUserObjByID(c *gin.Context, userid string, user *User) error {
 	return nil
 }
 
-func checkUserState(c *gin.Context) (username string, err error) {
-	if username, err = c.Cookie("user"); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "you haven't login",
-		})
-		return "", err
-	}
-
-	return username, nil
-}
-
 func getAllUser(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil {
-		return
-	}
-
 	var users []User
 	db.Find(&users)
 
@@ -46,10 +31,6 @@ func getAllUser(c *gin.Context) {
 }
 
 func getUserInfo(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil {
-		return
-	}
-
 	var user User
 	userid := c.Param("userid")
 	if err := db.Where("id = ?", userid).First(&user).Error; err != nil {
@@ -65,10 +46,6 @@ func getUserInfo(c *gin.Context) {
 }
 
 func createUser(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil {
-		return
-	}
-
 	var user User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -100,10 +77,6 @@ func createUser(c *gin.Context) {
 }
 
 func deleteUser(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil {
-		return
-	}
-
 	var user User
 	userid := c.Param("userid")
 	tx := db.Begin()

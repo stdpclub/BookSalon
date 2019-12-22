@@ -7,8 +7,6 @@ import (
 )
 
 func getTeamLeader(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil { return}
-
 	var user User
 	var team Team
 	var leader User
@@ -49,7 +47,6 @@ func getAllMember(c *gin.Context) {
 }
 
 func createTeamMember(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil { return}
 	var user User
 	var team Team
 	var newUser User
@@ -96,7 +93,6 @@ func createTeamMember(c *gin.Context) {
 }
 
 func deleteTeamMember(c *gin.Context) {
-	if _, err := checkUserState(c); err != nil { return}
 	var user User
 	var team Team
 	var delUser User
