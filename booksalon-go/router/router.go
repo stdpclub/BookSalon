@@ -1,6 +1,7 @@
-package main
+package router
 
 import (
+	"BookSalon/booksalon-go/dbconn"
 	"crypto/md5"
 	"net/http"
 	"strconv"
@@ -8,7 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func initView() *gin.Engine {
+var userSessions = make(map[string]int, 10)
+
+// InitView will create an gin engine and init APIs
+func InitView() *gin.Engine {
 	r := gin.Default()
 	r.POST("/login", handleLogin) // 登录
 
@@ -74,7 +78,10 @@ func authExact() gin.HandlerFunc {
 
 func authTeamExact() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if getUserTeamObj(c, &User{}, &Team{}) == nil { // TODO: 太低效了，重复查了两次
+		userid := c.Param("userid")
+		teamid := c.Param("teamid")
+
+		if _, _, err := dbconn.GetUserTeamObj(userid, teamid); err == nil { // TODO: 太低效了，重复查了两次
 			c.Next()
 			return
 		}
@@ -87,32 +94,24 @@ func authTeamExact() gin.HandlerFunc {
 }
 
 func handleLogin(c *gin.Context) {
-	var loginInfo UserAccount
+	var loginInfo dbconn.UserAccount
 
 	if err := c.ShouldBindJSON(&loginInfo); err != nil { // JSON
 		c.JSON(http.StatusBadRequest, gin.H{"error": "format incomplete"})
 		return
 	}
 
-	if db.First(&loginInfo).RecordNotFound() {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	if user, err := dbconn.GetUserByPwd(&loginInfo); err == nil {
+		// TODO: don't use cookies, use token to control the login status. now setting into encrip string
+		md5Ctx := md5.New()
+		md5Ctx.Write([]byte(user.Name))
+		sessionID := md5Ctx.Sum(nil)
+		userSessions[string(sessionID)] = int(user.ID)
+
+		c.SetCookie("user", string(sessionID), 3600, "/", "localhost", false, false)
+		c.JSON(http.StatusOK, gin.H{"loginState": "login success"})
 		return
 	}
 
-	// TODO: account relationship with user need to modify
-	var user User
-	if db.First(&user, "name = ?", loginInfo.Account).RecordNotFound() {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "account search error"})
-		return
-	}
-
-	// TODO: don't use cookies, use token to control the login status. now setting into encrip string
-
-	md5Ctx := md5.New()
-	md5Ctx.Write([]byte(user.Name))
-	sessionID := md5Ctx.Sum(nil)
-	userSessions[string(sessionID)] = int(user.ID)
-
-	c.SetCookie("user", string(sessionID), 3600, "/", "localhost", false, false)
-	c.JSON(http.StatusOK, gin.H{"loginState": "login success"})
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"BookSalon/booksalon-go/dbconn"
+	"BookSalon/booksalon-go/router"
 	"log"
 	"os"
 
@@ -8,8 +10,6 @@ import (
 )
 
 const version string = "v0.1.0"
-
-var userSessions = make(map[string]int, 10)
 
 func main() {
 	app := &cli.App{
@@ -23,12 +23,10 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 func initRun() {
-	initDB()
+	db := dbconn.NewDBConn()
 	defer db.Close()
-
-	initView().Run()
+	router.InitView().Run()
 }
