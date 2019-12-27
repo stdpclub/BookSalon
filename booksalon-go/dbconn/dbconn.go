@@ -10,20 +10,28 @@ import (
 
 var db *gorm.DB
 
+// LoginInfo is login json message that must need
+type LoginInfo struct {
+	Name     string
+	Account  string
+	Password string
+}
+
 // UserAccount is database table which store user account infomation
 type UserAccount struct {
 	gorm.Model
 	Account  string `form:"account" json:"account" binding:"required" gorm:"type:varchar(100);unique_index"`
 	Password string `form:"password" json:"password" binding:"required" gorm:"type:varchar(100);not null"`
-	// UserID   uint
+	User     User   `binding:"-"`
 }
 
 // User is student table in the mysql
 type User struct {
 	gorm.Model
 	// userCanShow
-	Name  string `form:"name" json:"name" binding:"required" gorm:"type:varchar(100);not null"`
-	Teams []Team `gorm:"many2many:user_teams"`
+	Name      string `form:"name" json:"name" binding:"required" gorm:"type:varchar(100);not null"`
+	Teams     []Team `gorm:"many2many:user_teams"`
+	AccountID uint   `binding:"-"`
 
 	// UserAccount UserAccount // this will get user password!!! which must can't be shown
 }
@@ -48,9 +56,11 @@ func NewDBConn() *gorm.DB {
 	db.AutoMigrate(&UserAccount{}) // 更新表结构
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&Team{})
+	db.Model(&UserAccount{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
 
-	// user := UserAccount{Account: "jelech", Password: "Nozuonodie"}
-	// db.Create(&user)
+	// db.Create(&UserAccount{Account: "jelech1", Password: "123"})
+	// db.Create(&UserAccount{Account: "jelech2", Password: "123"})
+	// db.Create(&UserAccount{Account: "jelech3", Password: "123"})
 
 	return db
 }

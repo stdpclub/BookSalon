@@ -43,15 +43,15 @@ func getUserInfo(c *gin.Context) {
 }
 
 func createUser(c *gin.Context) {
-	var user dbconn.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var loginInfo dbconn.LoginInfo
+	if err := c.ShouldBindJSON(&loginInfo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "bad requset format",
 		})
 		return
 	}
 
-	if _, err := dbconn.CreateUser(&user); err == nil {
+	if user, err := dbconn.CreateUser(&loginInfo); err == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"user": user,
 		})

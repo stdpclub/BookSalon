@@ -113,5 +113,6 @@ func handleLogin(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie("user", "", 0, "/", "localhost", false, false) // login faild. clear cookies
 	c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 }

@@ -1,13 +1,16 @@
 package dbconn
 
+import "fmt"
+
 // GetUserByPwd login user return User
-func GetUserByPwd(account *UserAccount) (retUser User, err error) {
-	if db.First(account).RecordNotFound() {
+func GetUserByPwd(act *UserAccount) (retUser User, err error) {
+	var tt UserAccount
+	if err = db.Where("account = ? AND password = ?", act.Account, act.Password).First(&tt).Error; err != nil {
 		return
 	}
+	fmt.Println(db.Where("account = ? AND password = ?", act.Account, act.Password).First(&tt).Value)
 
-	// TODO: account relationship with user need to modify
-	if db.First(&retUser, "name = ?", account.Account).RecordNotFound() {
+	if err = db.Model(&tt).Related(&retUser, "account_id").Error; err != nil {
 		return
 	}
 	return
