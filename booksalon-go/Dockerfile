@@ -2,15 +2,17 @@ FROM golang
 
 WORKDIR /go/src
 
-RUN git clone https://github.com/go-playground/validator.git    ~/go/src/gopkg.in/go-playground/validator.v8
-RUN git clone https://github.com/go-yaml/yaml.git               ~/go/src/gopkg.in/yaml.v2
-RUN git clone https://github.com/urfave/cli.git                 ~/go/src/github.com/urfave/cli/v2
-RUN git clone https://github.com/gin-gonic/gin.git              ~/go/src/github.com/gin-gonic/gin
-RUN git clone https://github.com/jinzhu/gorm.git                ~/go/src/github.com/jinzhu/gorm
+# 设置go module源。解决国内无法连接问题
+RUN go env -w GO111MODULE=on
+RUN go env -w GOPROXY=https://goproxy.io
+RUN go env -w GOSUMDB=sum.golang.google.cn
 
+RUN go get -u github.com/gin-gonic/gin
+RUN go get github.com/urfave/cli/v2
+RUN go get -u github.com/jinzhu/gorm
 
 COPY . .
 
 EXPOSE 80
 
-CMD [ "go build", "-o booksalon ./go/src/internal/", " && ./booksalon"]
+CMD [ "go build", "-o booksalon . ", " && ./booksalon"]
