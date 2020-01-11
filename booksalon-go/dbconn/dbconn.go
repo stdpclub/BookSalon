@@ -22,18 +22,16 @@ type UserAccount struct {
 	gorm.Model
 	Account  string `form:"account" json:"account" binding:"required" gorm:"type:varchar(100);unique_index"`
 	Password string `form:"password" json:"password" binding:"required" gorm:"type:varchar(100);not null"`
-	User     User   `binding:"-"`
 }
 
 // User is student table in the mysql
 type User struct {
 	gorm.Model
 	// userCanShow
-	Name      string `form:"name" json:"name" binding:"required" gorm:"type:varchar(100);not null"`
-	Teams     []Team `gorm:"many2many:user_teams"`
-	AccountID uint   `binding:"-"`
-
-	// UserAccount UserAccount // this will get user password!!! which must can't be shown
+	Name        string      `form:"name" json:"name" binding:"required" gorm:"type:varchar(100);not null"`
+	Teams       []Team      `gorm:"many2many:user_teams"`
+	AccountID   uint        `binding:"-"`
+	UserAccount UserAccount `binding:"-";gorm:"foreignkey:AccountID"`
 }
 
 // Team is a student group
@@ -41,6 +39,7 @@ type Team struct {
 	gorm.Model
 	Topic    string `form:"topic" json:"topic" binding:"required" gorm:"type:varchar(100);not null"`
 	LeaderID string `form:"leaderid" json:"leaderid" binding:"required" gorm:"type:varchar(100);not null"`
+	Leader   User   `binding:"-";gorm:"foreignkey:LeaderID"`
 	Users    []User `gorm:"many2many:user_teams"`
 }
 
@@ -56,7 +55,7 @@ func NewDBConn() *gorm.DB {
 	db.AutoMigrate(&UserAccount{}) // 更新表结构
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&Team{})
-	db.Model(&UserAccount{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
+	//db.Model(&UserAccount{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
 
 	// db.Create(&UserAccount{Account: "jelech1", Password: "123"})
 	// db.Create(&UserAccount{Account: "jelech2", Password: "123"})

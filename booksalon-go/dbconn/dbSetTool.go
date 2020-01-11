@@ -18,19 +18,21 @@ func CreateUser(loginInfo *LoginInfo) (retUser User, err error) {
 	userAccount := UserAccount{
 		Account:  loginInfo.Account,
 		Password: loginInfo.Password,
-		User:     user,
 	}
 
-	if err = tx.Create(&userAccount).Error; err != nil { // TODO: 确定这里不会出问题？
+	if err = tx.Create(&userAccount).Error; err != nil {
 		return // tx.Rollback()
 	}
 
 	user.AccountID = userAccount.ID
+	user.UserAccount = userAccount
 	if err = tx.Create(&user).Error; err != nil {
 		return // tx.Rollback()
 	}
 
-	return user, nil // tx.Commit()
+	retUser = user // 暂时放在这里，由于并不知道是应该返回多少东西。而账户和密码一般来说不应该返回
+	retUser.UserAccount = UserAccount{}
+	return // tx.Commit()
 }
 
 // CreateTeam create a new team
@@ -48,9 +50,8 @@ func CreateTeam(userID string, team *Team) (retTeam Team, err error) {
 	}
 
 	var user User
-	if tx.First(&user, "id = ?", userID).RecordNotFound() {
+	if err = tx.First(&user, "id = ?", userID).Error; err != nil {
 		tx.Rollback()
-		err = tx.Error
 		return
 	}
 	if err = tx.Model(&user).Association("Teams").Append(team).Error; err != nil {
@@ -65,7 +66,7 @@ func CreateTeam(userID string, team *Team) (retTeam Team, err error) {
 // UpdateTeam update a team by teamid
 func UpdateTeam(userID, teamID string, team *Team) (retTeam Team, err error) {
 	var user User
-	if user, err = GetUserObjByID(userID); err != nil {
+	if user, retTeam, err = GetUserTeamObj(userID, teamID); err != nil {
 		return
 	}
 
@@ -76,7 +77,6 @@ func UpdateTeam(userID, teamID string, team *Team) (retTeam Team, err error) {
 		}
 	}()
 
-	// TODO:there is a error. teamid useless, didn't change old team.
 	if err = tx.Model(user).Association("Teams").Replace(team).Error; err != nil {
 
 		tx.Rollback()
@@ -105,7 +105,6 @@ func AddTeamMember(userID, teamID, addUserID string) (retUser User, err error) {
 		}
 	}()
 
-	// TODO: ERROR!!!! table inster userid is worn
 	if err = tx.Model(&team).Association("Users").Append(&retUser).Error; err != nil {
 		tx.Rollback()
 		return
@@ -123,6 +122,10 @@ func DelTeamMember(userID, teamID, delUserID string) (err error) {
 	}
 
 	var delUser User // TODO: using userID search and del
+	if err = db.First(&delUser, "ID = ?", delUserID).Error; err != nil {
+		return
+	}
+
 	tx := db.Begin()
 	defer func() {
 		if err := recover(); err != nil {

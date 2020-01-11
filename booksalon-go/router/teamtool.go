@@ -44,12 +44,15 @@ func getUserTeam(c *gin.Context) {
 	userid := c.Param("userid")
 	teamid := c.Param("teamid")
 
-	if _, team, err := dbconn.GetUserTeamObj(userid, teamid); err != nil {
+	if _, team, err := dbconn.GetUserTeamObj(userid, teamid); err == nil {
 		c.JSON(http.StatusOK, gin.H{
 			"team": team,
 		})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err,
+		})
 	}
-	return
 }
 
 func updateUserTeam(c *gin.Context) {

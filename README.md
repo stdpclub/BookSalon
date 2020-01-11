@@ -1,4 +1,4 @@
-# Book salon V0.2.0
+# Book salon V0.3.0
 
 ## **It's still being designed and built**
 

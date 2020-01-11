@@ -1,14 +1,13 @@
 package dbconn
 
-import "fmt"
-
 // GetUserByPwd login user return User
 func GetUserByPwd(act *UserAccount) (retUser User, err error) {
 	var tt UserAccount
-	if err = db.Where("account = ? AND password = ?", act.Account, act.Password).First(&tt).Error; err != nil {
+
+	if err = db.First(&tt, "account = ? AND password = ?", act.Account, act.Password).Error; err != nil {
 		return
 	}
-	fmt.Println(db.Where("account = ? AND password = ?", act.Account, act.Password).First(&tt).Value)
+	//fmt.Println(db.Where("account = ? AND password = ?", act.Account, act.Password).First(&tt).Value)
 
 	if err = db.Model(&tt).Related(&retUser, "account_id").Error; err != nil {
 		return
@@ -43,8 +42,8 @@ func GetUserTeams(userid string) (retTeams []Team, err error) {
 
 // GetUserObjByID get user obj by userid
 func GetUserObjByID(userid string) (user User, err error) {
-	if db.First(&user, "id = ?", userid).RecordNotFound() {
-		return user, db.Error
+	if err = db.First(&user, "id = ?", userid).Error; err != nil {
+		return
 	}
 	return
 }
@@ -52,14 +51,10 @@ func GetUserObjByID(userid string) (user User, err error) {
 // GetUserTeamObj get user team obj by userid and teamid
 func GetUserTeamObj(userid, teamid string) (retUser User, retTeam Team, err error) {
 	if retUser, err = GetUserObjByID(userid); err != nil {
-		return retUser, retTeam, db.Error
+		return
 	}
 
-	// TODO: why return db.Error will be nil
-	// if db.Model(&tUser).Related(&teams, "Teams").First(&tTeam, "id = ?", teamid).RecordNotFound() {
-	// }
-
-	if err = db.Where("id = ? AND leader_id = ?", teamid, retUser.ID).First(&retTeam).Error; err != nil {
+	if err = db.First(&retTeam, "id = ? AND leader_id = ?", teamid, retUser.ID).Error; err != nil {
 		return
 	}
 	return

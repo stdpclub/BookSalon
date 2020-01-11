@@ -10,6 +10,7 @@ RUN go env -w GOSUMDB=sum.golang.google.cn
 RUN go get -u github.com/gin-gonic/gin
 RUN go get github.com/urfave/cli/v2
 RUN go get -u github.com/jinzhu/gorm
+RUN go get -u github.com/jinzhu/gorm/dialects/mysql
 
 COPY . .
 

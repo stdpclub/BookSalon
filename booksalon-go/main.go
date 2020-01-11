@@ -9,12 +9,13 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const version string = "v0.1.0"
+const version string = "v0.3.0"
 
 func main() {
 	app := &cli.App{
-		Name:  "booksalon",
-		Usage: "booksalon runserver",
+		Name:    "booksalon",
+		Usage:   "booksalon runserver",
+		Version: version,
 		Action: func(c *cli.Context) error {
 			initRun()
 			return nil
